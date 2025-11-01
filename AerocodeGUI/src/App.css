@@ -41,6 +41,23 @@ html,body,#root{height:100%;margin:0;background:var(--bg)}
 .aero-table tbody tr:last-child td{border-bottom:none}
 .actions{display:flex;gap:8px}
 
+/* status badge for peças */
+.badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:600;display:inline-block}
+.badge.pronta{background:#dff7e8;color:#05944b}
+.badge.em-producao{background:#e9f2ff;color:#1e6fff}
+.badge.em-transporte{background:#fff4db;color:#c08a00}
+
+/* Etapas specific: use similar small gray pill for 'Pendente' */
+.badge.pendente{background:#f3f4f6;color:#6b7280}
+.badge.em-andamento{background:#e9f2ff;color:#1e6fff}
+.badge.concluida{background:#dff7e8;color:#05944b}
+
+/* role badges for funcionários */
+.role{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:600;display:inline-block}
+.role.engenheiro{background:#e9f2ff;color:#1e6fff}
+.role.operador{background:#dff7e8;color:#05944b}
+.role.administrador{background:#f3e8ff;color:#7c3aed}
+
 /* modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:20px}
 .modal{width:620px;background:var(--card);border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,0.25);overflow:hidden}

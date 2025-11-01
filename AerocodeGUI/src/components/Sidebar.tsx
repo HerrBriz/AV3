@@ -1,6 +1,15 @@
 import type { FC } from 'react'
 
-const Sidebar: FC = () => {
+type Props = {
+  active?: string
+  onNavigate?: (page: string) => void
+}
+
+const Sidebar: FC<Props> = ({ active = 'aeronaves', onNavigate }) => {
+  function nav(page: string) {
+    onNavigate?.(page)
+  }
+
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -12,13 +21,13 @@ const Sidebar: FC = () => {
       </div>
 
       <nav className="nav">
-        <a className="nav-item active">Dashboard</a>
-        <a className="nav-item active-link">Aeronaves</a>
-        <a className="nav-item">Peças</a>
-        <a className="nav-item">Etapas de Produção</a>
-        <a className="nav-item">Funcionários</a>
-        <a className="nav-item">Testes</a>
-        <a className="nav-item">Relatórios</a>
+        <button className={`nav-item ${active === 'dashboard' ? 'active' : ''}`} onClick={() => nav('dashboard')}>Dashboard</button>
+        <button className={`nav-item ${active === 'aeronaves' ? 'active-link' : ''}`} onClick={() => nav('aeronaves')}>Aeronaves</button>
+        <button className={`nav-item ${active === 'pecas' ? 'active-link' : ''}`} onClick={() => nav('pecas')}>Peças</button>
+        <button className={`nav-item ${active === 'etapas' ? 'active' : ''}`} onClick={() => nav('etapas')}>Etapas de Produção</button>
+        <button className={`nav-item ${active === 'funcionarios' ? 'active' : ''}`} onClick={() => nav('funcionarios')}>Funcionários</button>
+        <button className={`nav-item ${active === 'testes' ? 'active' : ''}`} onClick={() => nav('testes')}>Testes</button>
+        <button className={`nav-item ${active === 'relatorios' ? 'active' : ''}`} onClick={() => nav('relatorios')}>Relatórios</button>
       </nav>
     </aside>
   )

@@ -10,8 +10,8 @@ export type Peca = {
 
 type Props = {
   data: Peca[]
-  onEdit: (p: Peca) => void
-  onDelete: (id: string) => void
+  onEdit?: (p: Peca) => void
+  onDelete?: (id: string) => void
 }
 
 const PecasTable: FC<Props> = ({ data, onEdit, onDelete }) => {
@@ -44,8 +44,8 @@ const PecasTable: FC<Props> = ({ data, onEdit, onDelete }) => {
                 </span>
               </td>
               <td className="actions">
-                <button className="btn-icon" onClick={() => onEdit(p)} title="Editar">✏️</button>
-                <button className="btn-icon danger" onClick={() => onDelete(p.id)} title="Excluir">🗑️</button>
+                {onEdit && <button className="btn-icon" onClick={() => onEdit(p)} title="Editar">✏️</button>}
+                {onDelete && <button className="btn-icon danger" onClick={() => onDelete(p.id)} title="Excluir">🗑️</button>}
               </td>
             </tr>
           ))}

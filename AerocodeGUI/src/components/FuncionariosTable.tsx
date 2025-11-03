@@ -11,8 +11,8 @@ export type Funcionario = {
 
 type Props = {
   data: Funcionario[]
-  onEdit: (f: Funcionario) => void
-  onDelete: (id: string) => void
+  onEdit?: (f: Funcionario) => void
+  onDelete?: (id: string) => void
 }
 
 const FuncionariosTable: FC<Props> = ({ data, onEdit, onDelete }) => {
@@ -47,8 +47,8 @@ const FuncionariosTable: FC<Props> = ({ data, onEdit, onDelete }) => {
                 </span>
               </td>
               <td className="actions">
-                <button className="btn-icon" onClick={() => onEdit(f)} title="Editar">✏️</button>
-                <button className="btn-icon danger" onClick={() => onDelete(f.id)} title="Excluir">🗑️</button>
+                {onEdit && <button className="btn-icon" onClick={() => onEdit(f)} title="Editar">✏️</button>}
+                {onDelete && <button className="btn-icon danger" onClick={() => onDelete(f.id)} title="Excluir">🗑️</button>}
               </td>
             </tr>
           ))}

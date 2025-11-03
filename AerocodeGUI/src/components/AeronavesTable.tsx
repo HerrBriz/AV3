@@ -11,8 +11,8 @@ export type Aeronave = {
 
 type Props = {
   data: Aeronave[]
-  onEdit: (a: Aeronave) => void
-  onDelete: (id: string) => void
+  onEdit?: (a: Aeronave) => void
+  onDelete?: (id: string) => void
 }
 
 const AeronavesTable: FC<Props> = ({ data, onEdit, onDelete }) => {
@@ -43,8 +43,8 @@ const AeronavesTable: FC<Props> = ({ data, onEdit, onDelete }) => {
               <td>{a.capacidade}</td>
               <td>{a.alcance}</td>
               <td className="actions">
-                <button className="btn-icon" onClick={() => onEdit(a)} title="Editar">✏️</button>
-                <button className="btn-icon danger" onClick={() => onDelete(a.id)} title="Excluir">🗑️</button>
+                {onEdit && <button className="btn-icon" onClick={() => onEdit(a)} title="Editar">✏️</button>}
+                {onDelete && <button className="btn-icon danger" onClick={() => onDelete(a.id)} title="Excluir">🗑️</button>}
               </td>
             </tr>
           ))}

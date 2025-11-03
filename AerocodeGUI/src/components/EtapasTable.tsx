@@ -10,8 +10,8 @@ export type Etapa = {
 
 type Props = {
   data: Etapa[]
-  onEdit: (e: Etapa) => void
-  onDelete: (id: string) => void
+  onEdit?: (e: Etapa) => void
+  onDelete?: (id: string) => void
 }
 
 const EtapasTable: FC<Props> = ({ data, onEdit, onDelete }) => {
@@ -45,8 +45,8 @@ const EtapasTable: FC<Props> = ({ data, onEdit, onDelete }) => {
               <td>{et.funcionarios || 'Não atribuído'}</td>
               <td className="actions">
                 <button className="btn-icon" title="Iniciar">▶️</button>
-                <button className="btn-icon" onClick={() => onEdit(et)} title="Editar">✏️</button>
-                <button className="btn-icon danger" onClick={() => onDelete(et.id)} title="Excluir">🗑️</button>
+                {onEdit && <button className="btn-icon" onClick={() => onEdit(et)} title="Editar">✏️</button>}
+                {onDelete && <button className="btn-icon danger" onClick={() => onDelete(et.id)} title="Excluir">🗑️</button>}
               </td>
             </tr>
           ))}

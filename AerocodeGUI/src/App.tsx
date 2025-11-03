@@ -1,5 +1,5 @@
 import './App.css'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import AeronavesTable, { type Aeronave } from './components/AeronavesTable'
 import ModalAeronave from './components/ModalAeronave'
@@ -12,8 +12,58 @@ import ModalFuncionario from './components/ModalFuncionario'
 import TestesTable, { type Teste } from './components/TestesTable'
 import ModalTeste from './components/ModalTeste'
 import Relatorios from './components/Relatorios'
+import Login from './components/Login'
+import Register from './components/Register'
+import ErrorBoundary from './components/ErrorBoundary'
+import type { User, AuthState, LoginCredentials } from './types/auth'
  
  function App() {
+  // Estado de autenticação
+	const [authState, setAuthState] = useState<AuthState>(() => {
+		try {
+			const savedAuth = localStorage.getItem('auth')
+			if (!savedAuth) return { user: null, isAuthenticated: false }
+			const parsed = JSON.parse(savedAuth)
+			// basic validation
+			if (typeof parsed.isAuthenticated === 'boolean' && (parsed.user === null || parsed.user.username)) {
+				return parsed as AuthState
+			}
+			return { user: null, isAuthenticated: false }
+		} catch (e) {
+			console.warn('Falha ao ler auth do localStorage, resetando', e)
+			return { user: null, isAuthenticated: false }
+		}
+	})
+  const [showRegister, setShowRegister] = useState(false)
+
+  // Salvando estado de autenticação
+  useEffect(() => {
+    localStorage.setItem('auth', JSON.stringify(authState))
+  }, [authState])
+
+  // Usuários registrados (em memória)
+	const [users, setUsers] = useState<User[]>(() => {
+		try {
+			const saved = localStorage.getItem('users')
+			if (!saved) return []
+			const parsed = JSON.parse(saved)
+			if (Array.isArray(parsed)) {
+				// filter to objects that look like users
+				return parsed.filter((u: any) => u && typeof u.username === 'string' && typeof u.password === 'string')
+			}
+			return []
+		} catch (e) {
+			console.warn('Falha ao ler users do localStorage, resetando', e)
+			return []
+		}
+	})
+
+  // Salvando usuários
+  useEffect(() => {
+    localStorage.setItem('users', JSON.stringify(users))
+  }, [users])
+
+	// --- ESTADOS GLOBAIS DA APLICAÇÃO (declarados sempre, independentemente da autenticação)
 	const [data, setData] = useState<Aeronave[]>(() => [
 		{ id: '1', codigo: 'AC-001', modelo: 'Boeing 737', tipo: 'Comercial', capacidade: 180, alcance: '6,570 km' },
 		{ id: '2', codigo: 'AC-002', modelo: 'Airbus A320', tipo: 'Comercial', capacidade: 150, alcance: '6,100 km' },
@@ -23,45 +73,107 @@ import Relatorios from './components/Relatorios'
 
 	const [modalOpen, setModalOpen] = useState(false)
 	const [editing, setEditing] = useState<Aeronave | null>(null)
-		const [page, setPage] = useState<'aeronaves' | 'pecas' | string>('aeronaves')
+	const [page, setPage] = useState<'aeronaves' | 'pecas' | string>('aeronaves')
 
-		const [pecas, setPecas] = useState<Peca[]>(() => [
-			{ id: 'p1', nome: 'Turbina JT8D', tipo: 'Importada', fornecedor: 'Pratt & Whitney', status: 'Pronta' },
-			{ id: 'p2', nome: 'Asa Principal', tipo: 'Nacional', fornecedor: 'Embraer', status: 'Em Produção' },
-			{ id: 'p3', nome: 'Sistema Hidráulico', tipo: 'Importada', fornecedor: 'Parker Aerospace', status: 'Em Transporte' },
-			{ id: 'p4', nome: 'Cockpit Display', tipo: 'Importada', fornecedor: 'Honeywell', status: 'Pronta' }
-		])
+	const [pecas, setPecas] = useState<Peca[]>(() => [
+		{ id: 'p1', nome: 'Turbina JT8D', tipo: 'Importada', fornecedor: 'Pratt & Whitney', status: 'Pronta' },
+		{ id: 'p2', nome: 'Asa Principal', tipo: 'Nacional', fornecedor: 'Embraer', status: 'Em Produção' },
+		{ id: 'p3', nome: 'Sistema Hidráulico', tipo: 'Importada', fornecedor: 'Parker Aerospace', status: 'Em Transporte' },
+		{ id: 'p4', nome: 'Cockpit Display', tipo: 'Importada', fornecedor: 'Honeywell', status: 'Pronta' }
+	])
 
-		const [modalPecaOpen, setModalPecaOpen] = useState(false)
-		const [editingPeca, setEditingPeca] = useState<Peca | null>(null)
-			const [etapas, setEtapas] = useState<Etapa[]>(() => [
-				{ id: 'e1', nome: 'Montagem da Fuselagem', prazo: '2025-11-14', status: 'Em Andamento', funcionarios: 'João Silva, Maria Santos' },
-				{ id: 'e2', nome: 'Instalação de Sistemas Elétricos', prazo: '2025-11-19', status: 'Pendente', funcionarios: 'Pedro Oliveira' },
-				{ id: 'e3', nome: 'Montagem das Asas', prazo: '2025-11-09', status: 'Concluida', funcionarios: 'Ana Costa, Carlos Ferreira' },
-				{ id: 'e4', nome: 'Instalação de Motores', prazo: '2025-11-24', status: 'Pendente', funcionarios: '' }
-			])
+	const [modalPecaOpen, setModalPecaOpen] = useState(false)
+	const [editingPeca, setEditingPeca] = useState<Peca | null>(null)
 
-			const [modalEtapaOpen, setModalEtapaOpen] = useState(false)
-			const [editingEtapa, setEditingEtapa] = useState<Etapa | null>(null)
-				const [funcionarios, setFuncionarios] = useState<Funcionario[]>(() => [
-					{ id: 'f1', nome: 'João Silva', telefone: '(11) 98765-4321', endereco: 'Rua A, 123', usuario: 'joao.silva', funcao: 'Engenheiro' },
-					{ id: 'f2', nome: 'Maria Santos', telefone: '(11) 98765-4322', endereco: 'Rua B, 456', usuario: 'maria.santos', funcao: 'Operador' },
-					{ id: 'f3', nome: 'Pedro Oliveira', telefone: '(11) 98765-4323', endereco: 'Rua C, 789', usuario: 'pedro.oliveira', funcao: 'Administrador' },
-					{ id: 'f4', nome: 'Ana Costa', telefone: '(11) 98765-4324', endereco: 'Rua D, 101', usuario: 'ana.costa', funcao: 'Engenheiro' }
-				])
+	const [etapas, setEtapas] = useState<Etapa[]>(() => [
+		{ id: 'e1', nome: 'Montagem da Fuselagem', prazo: '2025-11-14', status: 'Em Andamento', funcionarios: 'João Silva, Maria Santos' },
+		{ id: 'e2', nome: 'Instalação de Sistemas Elétricos', prazo: '2025-11-19', status: 'Pendente', funcionarios: 'Pedro Oliveira' },
+		{ id: 'e3', nome: 'Montagem das Asas', prazo: '2025-11-09', status: 'Concluida', funcionarios: 'Ana Costa, Carlos Ferreira' },
+		{ id: 'e4', nome: 'Instalação de Motores', prazo: '2025-11-24', status: 'Pendente', funcionarios: '' }
+	])
 
-				const [modalFuncionarioOpen, setModalFuncionarioOpen] = useState(false)
-  const [editingFuncionario, setEditingFuncionario] = useState<Funcionario | null>(null)
-  
-  const [testes, setTestes] = useState<Teste[]>(() => [
-    { id: 't1', tipo: 'Elétrico', resultado: 'Aprovado', data: '2025-10-24' },
-    { id: 't2', tipo: 'Hidráulico', resultado: 'Aprovado', data: '2025-10-25' },
-    { id: 't3', tipo: 'Aerodinâmico', resultado: 'Reprovado', data: '2025-10-26' },
-    { id: 't4', tipo: 'Elétrico', resultado: 'Aprovado', data: '2025-10-27' }
-  ])
+	const [modalEtapaOpen, setModalEtapaOpen] = useState(false)
+	const [editingEtapa, setEditingEtapa] = useState<Etapa | null>(null)
 
-  const [modalTesteOpen, setModalTesteOpen] = useState(false)
-  const [editingTeste, setEditingTeste] = useState<Teste | null>(null)
+	const [funcionarios, setFuncionarios] = useState<Funcionario[]>(() => [
+		{ id: 'f1', nome: 'João Silva', telefone: '(11) 98765-4321', endereco: 'Rua A, 123', usuario: 'joao.silva', funcao: 'Engenheiro' },
+		{ id: 'f2', nome: 'Maria Santos', telefone: '(11) 98765-4322', endereco: 'Rua B, 456', usuario: 'maria.santos', funcao: 'Operador' },
+		{ id: 'f3', nome: 'Pedro Oliveira', telefone: '(11) 98765-4323', endereco: 'Rua C, 789', usuario: 'pedro.oliveira', funcao: 'Administrador' },
+		{ id: 'f4', nome: 'Ana Costa', telefone: '(11) 98765-4324', endereco: 'Rua D, 101', usuario: 'ana.costa', funcao: 'Engenheiro' }
+	])
+
+	const [modalFuncionarioOpen, setModalFuncionarioOpen] = useState(false)
+	const [editingFuncionario, setEditingFuncionario] = useState<Funcionario | null>(null)
+
+	const [testes, setTestes] = useState<Teste[]>(() => [
+		{ id: 't1', tipo: 'Elétrico', resultado: 'Aprovado', data: '2025-10-24' },
+		{ id: 't2', tipo: 'Hidráulico', resultado: 'Aprovado', data: '2025-10-25' },
+		{ id: 't3', tipo: 'Aerodinâmico', resultado: 'Reprovado', data: '2025-10-26' },
+		{ id: 't4', tipo: 'Elétrico', resultado: 'Aprovado', data: '2025-10-27' }
+	])
+
+	const [modalTesteOpen, setModalTesteOpen] = useState(false)
+	const [editingTeste, setEditingTeste] = useState<Teste | null>(null)
+
+  // Manipuladores de autenticação
+  function handleLogin(credentials: LoginCredentials) {
+		console.log('Tentativa de login', credentials)
+		const user = users.find(u => u.username === credentials.username && u.password === credentials.password)
+		console.log('Usuário encontrado', user)
+
+		if (user) {
+			setAuthState({ user, isAuthenticated: true })
+		} else {
+			alert('Usuário ou senha inválidos')
+		}
+  }
+
+  function handleRegister(data: Omit<User, 'id'>) {
+    const userExists = users.some(u => u.username === data.username)
+    if (userExists) {
+      alert('Nome de usuário já existe')
+      return
+    }
+
+    const newUser = { ...data, id: Date.now().toString() }
+    setUsers([...users, newUser])
+    alert('Cadastro realizado com sucesso! Faça login para continuar.')
+    setShowRegister(false)
+  }
+
+  function handleLogout() {
+    setAuthState({ user: null, isAuthenticated: false })
+  }
+
+  // Se não estiver autenticado, mostra tela de login/registro
+  if (!authState.isAuthenticated) {
+		if (showRegister) {
+			return (
+				<ErrorBoundary>
+					<Register 
+						onRegister={handleRegister} 
+						onBackToLogin={() => setShowRegister(false)} 
+					/>
+				</ErrorBoundary>
+			)
+		}
+		return (
+			<ErrorBoundary>
+				<Login 
+					onLogin={handleLogin}
+					onRegisterClick={() => setShowRegister(true)}
+				/>
+			</ErrorBoundary>
+		)
+  }
+
+  // Verificações de permissão
+  function hasPermission(requiredRole: 'admin' | 'engenheiro') {
+    if (!authState.user) return false
+    if (authState.user.role === 'admin') return true
+    return authState.user.role === requiredRole
+  }
+
 
   function handleAdd() {
     if (page === 'pecas') {
@@ -174,8 +286,15 @@ import Relatorios from './components/Relatorios'
 				}
 
 		return (
-			<div className="app-root">
-				<Sidebar active={page} onNavigate={(p) => setPage(p)} />
+			<ErrorBoundary>
+				<div className="app-root">
+				<Sidebar 
+          active={page} 
+          onNavigate={(p) => setPage(p)} 
+          userName={authState.user?.nome}
+          userRole={authState.user?.role}
+          onLogout={handleLogout}
+        />
 
 					<main className="content">
 						<div className="content-header">
@@ -212,44 +331,72 @@ import Relatorios from './components/Relatorios'
 
 							<div>
 								{page !== 'relatorios' && (
-									<button className="btn primary" onClick={handleAdd}>+ {
-										page === 'pecas'
-											? 'Adicionar Peça'
-											: page === 'etapas'
-											? 'Adicionar Etapa'
-											: page === 'funcionarios'
-											? 'Adicionar Funcionário'
-											: page === 'testes'
-											? 'Adicionar Teste'
-											: 'Adicionar Aeronave'
-									}</button>
+									hasPermission(page === 'funcionarios' ? 'admin' : 'engenheiro') && (
+										<button className="btn primary" onClick={handleAdd}>+ {
+											page === 'pecas'
+												? 'Adicionar Peça'
+												: page === 'etapas'
+												? 'Adicionar Etapa'
+												: page === 'funcionarios'
+												? 'Adicionar Funcionário'
+												: page === 'testes'
+												? 'Adicionar Teste'
+												: 'Adicionar Aeronave'
+										}</button>
+									)
 								)}
 							</div>
 						</div>
 
 										{page === 'pecas' ? (
-											<PecasTable data={pecas} onEdit={handleEditPeca} onDelete={handleDeletePeca} />
+											<PecasTable 
+												data={pecas} 
+												onEdit={hasPermission('engenheiro') ? handleEditPeca : undefined} 
+												onDelete={hasPermission('engenheiro') ? handleDeletePeca : undefined} 
+											/>
 										) : page === 'etapas' ? (
-											<EtapasTable data={etapas} onEdit={handleEditEtapa} onDelete={handleDeleteEtapa} />
+											<EtapasTable 
+												data={etapas} 
+												onEdit={hasPermission('engenheiro') ? handleEditEtapa : undefined} 
+												onDelete={hasPermission('engenheiro') ? handleDeleteEtapa : undefined} 
+											/>
 										) : page === 'funcionarios' ? (
-											<FuncionariosTable data={funcionarios} onEdit={handleEditFuncionario} onDelete={handleDeleteFuncionario} />
+											<FuncionariosTable 
+												data={funcionarios} 
+												onEdit={hasPermission('admin') ? handleEditFuncionario : undefined} 
+												onDelete={hasPermission('admin') ? handleDeleteFuncionario : undefined} 
+											/>
 										) : page === 'relatorios' ? (
-											<Relatorios aeronaves={data} pecas={pecas} etapas={etapas} funcionarios={funcionarios} testes={testes} />
+											<Relatorios 
+												aeronaves={data} 
+												pecas={pecas} 
+												etapas={etapas} 
+												funcionarios={funcionarios} 
+												testes={testes} 
+											/>
 										) : page === 'testes' ? (
-											<TestesTable data={testes} onEdit={handleEditTeste} onDelete={handleDeleteTeste} />
+											<TestesTable 
+												data={testes} 
+												onEdit={hasPermission('engenheiro') ? handleEditTeste : undefined} 
+												onDelete={hasPermission('engenheiro') ? handleDeleteTeste : undefined} 
+											/>
 										) : (
-											<AeronavesTable data={data} onEdit={handleEdit} onDelete={handleDelete} />
+											<AeronavesTable 
+												data={data} 
+												onEdit={hasPermission('engenheiro') ? handleEdit : undefined} 
+												onDelete={hasPermission('engenheiro') ? handleDelete : undefined} 
+											/>
 										)}
 					</main>
 
-					<ModalAeronave open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} initial={editing} />
-					<ModalPeca open={modalPecaOpen} onClose={() => setModalPecaOpen(false)} onSave={handleSavePeca} initial={editingPeca} />
-					<ModalEtapa open={modalEtapaOpen} onClose={() => setModalEtapaOpen(false)} onSave={handleSaveEtapa} initial={editingEtapa} />
-					<ModalFuncionario open={modalFuncionarioOpen} onClose={() => setModalFuncionarioOpen(false)} onSave={handleSaveFuncionario} initial={editingFuncionario} />
-					<ModalTeste open={modalTesteOpen} onClose={() => setModalTesteOpen(false)} onSave={handleSaveTeste} initial={editingTeste} />
-      
-		</div>
-	)
+						<ModalAeronave open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} initial={editing} />
+						<ModalPeca open={modalPecaOpen} onClose={() => setModalPecaOpen(false)} onSave={handleSavePeca} initial={editingPeca} />
+						<ModalEtapa open={modalEtapaOpen} onClose={() => setModalEtapaOpen(false)} onSave={handleSaveEtapa} initial={editingEtapa} />
+						<ModalFuncionario open={modalFuncionarioOpen} onClose={() => setModalFuncionarioOpen(false)} onSave={handleSaveFuncionario} initial={editingFuncionario} />
+						<ModalTeste open={modalTesteOpen} onClose={() => setModalTesteOpen(false)} onSave={handleSaveTeste} initial={editingTeste} />
+					</div>
+				</ErrorBoundary>
+			)
 }
 
 export default App

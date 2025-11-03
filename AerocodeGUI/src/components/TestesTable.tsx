@@ -9,8 +9,8 @@ export type Teste = {
 
 type Props = {
   data: Teste[]
-  onEdit: (t: Teste) => void
-  onDelete: (id: string) => void
+  onEdit?: (t: Teste) => void
+  onDelete?: (id: string) => void
 }
 
 const TestesTable: FC<Props> = ({ data, onEdit, onDelete }) => {
@@ -41,8 +41,8 @@ const TestesTable: FC<Props> = ({ data, onEdit, onDelete }) => {
               </td>
               <td>{t.data}</td>
               <td className="actions">
-                <button className="btn-icon" onClick={() => onEdit(t)} title="Editar">✏️</button>
-                <button className="btn-icon danger" onClick={() => onDelete(t.id)} title="Excluir">🗑️</button>
+                {onEdit && <button className="btn-icon" onClick={() => onEdit(t)} title="Editar">✏️</button>}
+                {onDelete && <button className="btn-icon danger" onClick={() => onDelete(t.id)} title="Excluir">🗑️</button>}
               </td>
             </tr>
           ))}

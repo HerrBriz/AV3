@@ -1,0 +1,48 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url = env("DATABASE_URL")
+}
+model aeronave {
+    id String @id @default(cuid())
+    codigo String @unique
+    modelo String
+    tipo String
+    capacidade Int
+    alcance String
+}
+
+model etapa {
+    id String @id @default(cuid())
+    nome String
+    prazo String
+    status String
+    funcionarios String
+}
+
+model funcionario {
+    id String @id @default(cuid())
+    nome String
+    telefone String
+    endereco String
+    usuario String
+    funcao String
+}
+
+model peca {
+    id String @id @default(cuid())
+    nome String
+    tipo String
+    fornecedor String
+    status String
+}
+
+model teste {
+    id String @id @default(cuid())
+    tipo String
+    resultado String
+    data String
+}

@@ -8,9 +8,10 @@ type Props = {
   userName?: string
   userRole?: UserRole
   onLogout?: () => void
+  onSaveAll?: () => void
 }
 
-const Sidebar: FC<Props> = ({ active = 'aeronaves', onNavigate, userName, userRole, onLogout }) => {
+const Sidebar: FC<Props> = ({ active = 'aeronaves', onNavigate, userName, userRole, onLogout, onSaveAll }) => {
   function nav(page: string) {
     onNavigate?.(page)
   }
@@ -32,6 +33,9 @@ const Sidebar: FC<Props> = ({ active = 'aeronaves', onNavigate, userName, userRo
         <button className={`nav-item ${active === 'funcionarios' ? 'active' : ''}`} onClick={() => nav('funcionarios')}>Funcionários</button>
         <button className={`nav-item ${active === 'testes' ? 'active' : ''}`} onClick={() => nav('testes')}>Testes</button>
         <button className={`nav-item ${active === 'relatorios' ? 'active' : ''}`} onClick={() => nav('relatorios')}>Relatórios</button>
+        {onSaveAll && (
+          <button className="nav-item save" onClick={onSaveAll} style={{marginTop: '8px'}}>Salvar</button>
+        )}
       </nav>
 
       {/* User Info */}

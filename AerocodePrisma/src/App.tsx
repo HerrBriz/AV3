@@ -285,12 +285,108 @@ import type { User, AuthState, LoginCredentials } from './types/auth'
 					})
 				}
 
+				// Persist all local changes to the backend DB
+				async function handleSaveAll() {
+					const base = 'http://localhost:4000/api'
+					try {
+						// --- Aeronaves ---
+						const resA = await fetch(`${base}/aeronaves`)
+						const dbAero = await resA.json()
+						const mapA = new Map(dbAero.map((x: any) => [x.codigo, x]))
+						for (const a of data) {
+							const match = mapA.get(a.codigo)
+							const payload = { codigo: a.codigo, modelo: a.modelo, tipo: a.tipo, capacidade: Number(a.capacidade), alcance: a.alcance }
+							if (match) {
+								await fetch(`${base}/aeronaves/${match.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							} else {
+								await fetch(`${base}/aeronaves`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							}
+						}
+
+						// --- Pecas --- (match by nome)
+						const resP = await fetch(`${base}/pecas`)
+						const dbP = await resP.json()
+						const mapP = new Map(dbP.map((x: any) => [x.nome, x]))
+						for (const p of pecas) {
+							const match = mapP.get(p.nome)
+							const payload = { nome: p.nome, tipo: p.tipo, fornecedor: p.fornecedor, status: p.status }
+							if (match) {
+								await fetch(`${base}/pecas/${match.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							} else {
+								await fetch(`${base}/pecas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							}
+						}
+
+						// --- Funcionarios --- (match by usuario)
+						const resF = await fetch(`${base}/funcionarios`)
+						const dbF = await resF.json()
+						const mapF = new Map(dbF.map((x: any) => [x.usuario, x]))
+						for (const f of funcionarios) {
+							const match = mapF.get(f.usuario)
+							const payload = { nome: f.nome, telefone: f.telefone, endereco: f.endereco, usuario: f.usuario, funcao: f.funcao }
+							if (match) {
+								await fetch(`${base}/funcionarios/${match.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							} else {
+								await fetch(`${base}/funcionarios`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							}
+						}
+
+						// --- Etapas --- (match by nome)
+						const resE = await fetch(`${base}/etapas`)
+						const dbE = await resE.json()
+						const mapE = new Map(dbE.map((x: any) => [x.nome, x]))
+						for (const e of etapas) {
+							const match = mapE.get(e.nome)
+							const payload = { nome: e.nome, prazo: e.prazo, status: e.status }
+							if (match) {
+								await fetch(`${base}/etapas/${match.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							} else {
+								await fetch(`${base}/etapas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							}
+						}
+
+						// --- Testes --- (match by tipo+data)
+						const resT = await fetch(`${base}/testes`)
+						const dbT = await resT.json()
+						for (const t of testes) {
+							const match = dbT.find((x: any) => x.tipo === t.tipo && x.data === t.data)
+							const payload = { tipo: t.tipo, resultado: t.resultado, data: t.data }
+							if (match) {
+								await fetch(`${base}/testes/${match.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							} else {
+								await fetch(`${base}/testes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+							}
+						}
+
+						// reload from server to sync ids and data
+						const [freshA, freshP, freshE, freshF, freshT] = await Promise.all([
+							fetch(`${base}/aeronaves`).then(r => r.json()),
+							fetch(`${base}/pecas`).then(r => r.json()),
+							fetch(`${base}/etapas`).then(r => r.json()),
+							fetch(`${base}/funcionarios`).then(r => r.json()),
+							fetch(`${base}/testes`).then(r => r.json())
+						])
+						// convert ids to string for app state compatibility
+						setData(freshA.map((x: any) => ({ ...x, id: String(x.id) })))
+						setPecas(freshP.map((x: any) => ({ ...x, id: String(x.id) })))
+						setEtapas(freshE.map((x: any) => ({ ...x, id: String(x.id), funcionarios: (x.funcionarios || []).map((f: any) => f.nome).join(', ') })))
+						setFuncionarios(freshF.map((x: any) => ({ ...x, id: String(x.id) })))
+						setTestes(freshT.map((x: any) => ({ ...x, id: String(x.id) })))
+
+						alert('Dados salvos no banco com sucesso.')
+					} catch (err) {
+						console.error(err)
+						alert('Falha ao salvar dados. Veja console para detalhes.')
+					}
+				}
+
 		return (
 			<ErrorBoundary>
 				<div className="app-root">
 				<Sidebar 
           active={page} 
-          onNavigate={(p) => setPage(p)} 
+						onNavigate={(p) => setPage(p)} 
+						onSaveAll={handleSaveAll}
           userName={authState.user?.nome}
           userRole={authState.user?.role}
           onLogout={handleLogout}

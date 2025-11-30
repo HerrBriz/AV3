@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE `aeronave` (
-    `id` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `codigo` VARCHAR(191) NOT NULL,
     `modelo` VARCHAR(191) NOT NULL,
     `tipo` VARCHAR(191) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE `aeronave` (
 
 -- CreateTable
 CREATE TABLE `etapa` (
-    `id` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `nome` VARCHAR(191) NOT NULL,
     `prazo` VARCHAR(191) NOT NULL,
     `status` VARCHAR(191) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE `etapa` (
 
 -- CreateTable
 CREATE TABLE `funcionario` (
-    `id` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `nome` VARCHAR(191) NOT NULL,
     `telefone` VARCHAR(191) NOT NULL,
     `endereco` VARCHAR(191) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE `funcionario` (
 
 -- CreateTable
 CREATE TABLE `peca` (
-    `id` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `nome` VARCHAR(191) NOT NULL,
     `tipo` VARCHAR(191) NOT NULL,
     `fornecedor` VARCHAR(191) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE `peca` (
 
 -- CreateTable
 CREATE TABLE `teste` (
-    `id` VARCHAR(191) NOT NULL,
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
     `tipo` VARCHAR(191) NOT NULL,
     `resultado` VARCHAR(191) NOT NULL,
     `data` VARCHAR(191) NOT NULL,
@@ -56,8 +56,8 @@ CREATE TABLE `teste` (
 
 -- CreateTable
 CREATE TABLE `_etapaTofuncionario` (
-    `A` VARCHAR(191) NOT NULL,
-    `B` VARCHAR(191) NOT NULL,
+    `A` INTEGER NOT NULL,
+    `B` INTEGER NOT NULL,
 
     UNIQUE INDEX `_etapaTofuncionario_AB_unique`(`A`, `B`),
     INDEX `_etapaTofuncionario_B_index`(`B`)

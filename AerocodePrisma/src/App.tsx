@@ -358,6 +358,48 @@ import type { User, AuthState, LoginCredentials } from './types/auth'
 							}
 						}
 
+						// --- Deletions: remove DB records that are no longer present locally ---
+						// Aeronaves (match by codigo)
+						const localCodigos = new Set(data.map(a => a.codigo))
+						for (const dbItem of dbAero) {
+							if (!localCodigos.has(dbItem.codigo)) {
+								await fetch(`${base}/aeronaves/${dbItem.id}`, { method: 'DELETE' })
+							}
+						}
+
+						// Pecas (match by nome)
+						const localPecas = new Set(pecas.map(p => p.nome))
+						for (const dbItem of dbP) {
+							if (!localPecas.has(dbItem.nome)) {
+								await fetch(`${base}/pecas/${dbItem.id}`, { method: 'DELETE' })
+							}
+						}
+
+						// Funcionarios (match by usuario)
+						const localUsuarios = new Set(funcionarios.map(f => f.usuario))
+						for (const dbItem of dbF) {
+							if (!localUsuarios.has(dbItem.usuario)) {
+								await fetch(`${base}/funcionarios/${dbItem.id}`, { method: 'DELETE' })
+							}
+						}
+
+						// Etapas (match by nome)
+						const localEtapas = new Set(etapas.map(e => e.nome))
+						for (const dbItem of dbE) {
+							if (!localEtapas.has(dbItem.nome)) {
+								await fetch(`${base}/etapas/${dbItem.id}`, { method: 'DELETE' })
+							}
+						}
+
+						// Testes (match by tipo+data)
+						const localTestKeys = new Set(testes.map(t => `${t.tipo}|${t.data}`))
+						for (const dbItem of dbT) {
+							const key = `${dbItem.tipo}|${dbItem.data}`
+							if (!localTestKeys.has(key)) {
+								await fetch(`${base}/testes/${dbItem.id}`, { method: 'DELETE' })
+							}
+						}
+
 						// reload from server to sync ids and data
 						const [freshA, freshP, freshE, freshF, freshT] = await Promise.all([
 							fetch(`${base}/aeronaves`).then(r => r.json()),

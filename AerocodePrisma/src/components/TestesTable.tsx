@@ -42,7 +42,18 @@ const TestesTable: FC<Props> = ({ data, onEdit, onDelete }) => {
               <td>{t.data}</td>
               <td className="actions">
                 {onEdit && <button className="btn-icon" onClick={() => onEdit(t)} title="Editar">✏️</button>}
-                {onDelete && <button className="btn-icon danger" onClick={() => onDelete(t.id)} title="Excluir">🗑️</button>}
+                {onDelete && (
+                  <button
+                    className="btn-icon danger"
+                    onClick={() => {
+                      const ok = window.confirm('Confirma excluir este teste? A exclusão será aplicada quando você clicar em Salvar.')
+                      if (ok) onDelete(t.id)
+                    }}
+                    title="Excluir"
+                  >
+                    🗑️
+                  </button>
+                )}
               </td>
             </tr>
           ))}

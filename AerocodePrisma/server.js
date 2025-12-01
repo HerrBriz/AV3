@@ -2,6 +2,7 @@
 import express from 'express'
 import cors from 'cors'
 import { PrismaClient } from '@prisma/client'
+import { performance } from 'perf_hooks'
 
 const prisma = new PrismaClient()
 const app = express()
@@ -202,6 +203,19 @@ app.delete('/api/testes/:id', async (req, res) => {
     const id = Number(req.params.id)
     await prisma.teste.delete({ where: { id }})
     res.status(204).end()
+  } catch (err) { handleError(res, err) }
+})
+
+// --- Métricas (tempo de processamento interno) ---
+app.get('/metricas', async (req, res) => {
+  try {
+    const inicio = performance.now()
+    // lógica mínima que passa pelo backend (pode ser alterada para operações reais)
+    // aqui fazemos uma pequena consulta ao banco para medir trabalho real do servidor
+    await prisma.aeronave.findFirst()
+    const fim = performance.now()
+    const tempoProcessamento = fim - inicio
+    res.json({ tempoProcessamento })
   } catch (err) { handleError(res, err) }
 })
 

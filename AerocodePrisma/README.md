@@ -1,73 +1,152 @@
-# React + TypeScript + Vite
+# AerocodePrisma — Medição de Métricas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este repositório contém uma API em Node.js (Express) com persistência via Prisma e um pequeno script cliente para medir três métricas de desempenho:
 
-Currently, two official plugins are available:
+- tempoProcessamento: tempo medido no servidor (controller) e retornado via endpoint `/metricas`;
+- tempoResposta: tempo total do pedido (round-trip) medido no cliente com `performance.now()`;
+- latência: estimativa do tempo de rede/overhead, calculada como `tempoResposta - tempoProcessamento`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+O objetivo é permitir medições simples para 1, 5 e 10 usuários simultâneos (script `src/metricasTest.js`).
 
-## React Compiler
+**Observação:** este README descreve como preparar o banco de dados (MySQL), gerar o cliente Prisma, iniciar a API e executar os testes de métrica localmente.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tecnologias
 
-## Expanding the ESLint configuration
+- Node.js
+- Express
+- Prisma (ORM)
+- MySQL (exemplo de banco)
+- Vite + React (frontend do projeto, em `src/`)
+- Ferramentas: `npm`, `npx`, `git`
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Pré-requisitos
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Git
+- Node.js (recomendado >= 16)
+- npm (ou yarn)
+- MySQL (local)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Passo a passo — Instalação e execução (Windows PowerShell)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1) Clone o repositório
+
+```powershell
+git clone <URL-DO-REPO>
+cd <nome-do-diretório-clonado>
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2) Instale dependências do projeto
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```powershell
+cd c:\Users\LG\Desktop\AV3pristeste\AV3\AerocodePrisma
+npm install
 ```
+
+3) Preparar o banco de dados
+
+Opção A — MySQL local (já instalado)
+
+- Inicie o serviço do MySQL (se necessário) e crie a base:
+
+```sql
+-- no cliente MySQL (ou MySQL Workbench):
+CREATE DATABASE aerocode;
+```
+
+(O projeto espera um MySQL local; use sua instalação local para seguir os passos abaixo.)
+
+4) Configurar variáveis de ambiente
+
+- Crie um arquivo `.env` na raiz do projeto `AerocodePrisma` com a URL do banco (ajuste usuário/senha/porta conforme sua opção):
+
+```env
+DATABASE_URL="mysql://aerouser:aeropass@localhost:3306/aerocode"
+```
+
+Se você usou MySQL local, substitua `aerouser:aeropass` pelas suas credenciais.
+
+Credenciais padrão do sistema (para testes)
+
+- Usuário: `admin@`
+- Senha: `admin@`
+
+Use estas credenciais apenas em ambiente de desenvolvimento/avaliação.
+
+5) Gerar cliente Prisma e aplicar migrations
+
+```powershell
+npx prisma generate
+npx prisma migrate dev --name init
+```
+
+> Se for só testar sem persistência, você pode pular as migrations, mas o projeto usa Prisma nas rotas.
+
+6) Iniciar a API (backend)
+
+```powershell
+# roda o servidor express definido em server.js
+npm run start:api
+# ou alternativamente
+node server.js
+```
+
+Por padrão o `server.js` no projeto escuta a porta 4000 (ver mensagem no terminal ao iniciar).
+
+7) Iniciar o frontend (opcional)
+
+O frontend está configurado com Vite. Em outro terminal, na mesma pasta do projeto:
+
+```powershell
+npm run dev
+```
+
+Abra a URL que o Vite mostrar no terminal (ex.: `http://localhost:5173`).
+
+8) Executar o script de métricas
+
+Com a API rodando, execute:
+
+```powershell
+node src/metricasTest.js
+```
+
+O script fará três execuções: 1, 5 e 10 requisições paralelas ao endpoint `/metricas` e imprimirá as médias e detalhes em tabelas no console.
+
+Se o servidor estiver em outra porta, edite `BASE` em `src/metricasTest.js` para `http://localhost:<porta>`.
+
+## Comandos úteis (resumo)
+
+```powershell
+# instalar dependências
+npm install
+
+# preparar prisma
+npx prisma generate
+npx prisma migrate dev --name init
+
+# iniciar API
+npm run start:api
+
+# iniciar frontend (vite)
+npm run dev
+
+# rodar testes de métrica
+node src/metricasTest.js
+```
+
+## Detalhes sobre as métricas
+
+- `tempoProcessamento`: medido no servidor com `performance.now()` dentro do controller e retornado via JSON.
+- `tempoResposta`: medido no cliente (script) entre o envio da requisição e o recebimento completo da resposta.
+- `latencia`: estimativa de tempo de rede/overhead, calculada como `tempoResposta - tempoProcessamento`.
+
+Cada execução do script mostra os valores individuais por requisição e a média por cenário (1, 5 e 10). Recomenda-se repetir cada cenário algumas vezes e usar a média das execuções para reduzir ruído.
+
+## Problemas comuns
+
+- Erro de conexão com o DB: verifique `DATABASE_URL` no `.env` e se o MySQL está aceitando conexões na porta correta.
+- `prisma migrate` pede senha: confirme as credenciais e que o banco foi criado.
+
+## Observações sobre a interface (GUI)
+
+- O botão `Salvar` localizado na `Sidebar` do frontend é o botão que grava/atualiza alterações realizadas na interface diretamente no banco de dados. Sempre utilize esse botão após criar/editar registros para persistir as mudanças.
